@@ -19826,6 +19826,12 @@ var AppActions = {
 			actionType: AppConstants.RECEIVE_NOTES,
 			notes: notes
 		});
+	},
+	removeNote: function(noteId){
+		AppDispatcher.handleViewAction({
+			actionType: AppConstants.REMOVE_NOTE,
+			noteId: noteId
+		});
 	}
 }
 
@@ -19928,10 +19934,14 @@ var Note = React.createClass({displayName: "Note",
 	render: function(){
 		return(
         React.createElement("div", {className: "column"}, 
-          React.createElement("div", {className: "note"}, React.createElement("p", null, this.props.note.text))
+          React.createElement("div", {onDoubleClick: this.removeNote.bind(this, this.props.note._id), className: "note"}, React.createElement("p", null, this.props.note.text))
         )
 		)
-	}
+	},
+  removeNote: function(i, j){
+    console.log(i.$oid);
+    AppActions.removeNote(i.$oid);
+  }
 });
 
 module.exports = Note;
@@ -19963,7 +19973,8 @@ module.exports = NoteList;
 },{"../actions/AppActions":164,"../stores/AppStore":172,"./Note.js":167,"react":163}],169:[function(require,module,exports){
 module.exports = {
 	ADD_NOTE: 'ADD_NOTE',
-	RECEIVE_NOTES: 'RECEIVE_NOTES'
+	RECEIVE_NOTES: 'RECEIVE_NOTES',
+	REMOVE_NOTE: 'REMOVE_NOTE'
 }
 },{}],170:[function(require,module,exports){
 var Dispatcher = require('flux').Dispatcher;
@@ -20014,6 +20025,10 @@ var AppStore = assign({}, EventEmitter.prototype, {
 	setNotes: function(notes){
 		_notes = notes;
 	},
+	removeNote: function(noteId){
+		var index = _notes.findIndex(x => x._id.$oid === noteId);
+		_notes.splice(index, 1);
+	},
 	emitChange: function(){
 		this.emit(CHANGE_EVENT);
 	},
@@ -20051,6 +20066,20 @@ AppDispatcher.register(function(payload){
 			//Emit Change
 			AppStore.emit(CHANGE_EVENT);
 			break;
+
+		case AppConstants.REMOVE_NOTE:
+			console.log('Removing Note...');
+
+			//Store Remove
+			AppStore.removeNote(action.noteId);
+
+			//API Remove
+			AppAPI.removeNote(action.noteId);
+
+			//Emit Change
+			AppStore.emit(CHANGE_EVENT);
+			break;
+
 	}
 
 	return true;
@@ -20059,12 +20088,14 @@ AppDispatcher.register(function(payload){
 module.exports = AppStore;
 },{"../constants/AppConstants":169,"../dispatcher/AppDispatcher":170,"../utils/AppAPI.js":173,"events":1,"object-assign":6}],173:[function(require,module,exports){
 var AppActions = require('../actions/AppActions');
-var url = require('./appUrl.js');
+var key = require('./appUrl.js');
+
+var url = "https://api.mlab.com/api/1/databases/styckypad/collections/notes";
 
 module.exports = {
 		addNote: function(note){
 			$.ajax({
-				url: url,
+				url: url+key,
 				data: JSON.stringify(note),
 				type: "POST",
 				contentType: "application/json"
@@ -20072,7 +20103,7 @@ module.exports = {
 		},
 		getNotes: function(){
 			$.ajax({
-				url: url,
+				url: url+key,
 				dataType: 'json',
 				cache: false,
 				success: function(data){
@@ -20083,16 +20114,32 @@ module.exports = {
 					console.log(err);
 				}.bind(this)
 			});
-		}
+		},
+		removeNote: function(noteId){
+			$.ajax({
+				url: url + "/" + noteId + key,
+				type: "DELETE",
+				async: true,
+				timeout: 300000,
+				success: function(data){
+					console.log('Note Deleted...');
+				}.bind(this),
+				error: function(xhr, status, err){
+					console.log(err);
+				}.bind(this)
+		});
+	}
 	}
 },{"../actions/AppActions":164,"./appUrl.js":175}],174:[function(require,module,exports){
 var AppActions = require('../actions/AppActions');
-var url = require('./appUrl.js');
+var key = require('./appUrl.js');
+
+var url = "https://api.mlab.com/api/1/databases/styckypad/collections/notes";
 
 module.exports = {
 		addNote: function(note){
 			$.ajax({
-				url: url,
+				url: url+key,
 				data: JSON.stringify(note),
 				type: "POST",
 				contentType: "application/json"
@@ -20100,7 +20147,7 @@ module.exports = {
 		},
 		getNotes: function(){
 			$.ajax({
-				url: url,
+				url: url+key,
 				dataType: 'json',
 				cache: false,
 				success: function(data){
@@ -20111,10 +20158,24 @@ module.exports = {
 					console.log(err);
 				}.bind(this)
 			});
-		}
+		},
+		removeNote: function(noteId){
+			$.ajax({
+				url: url + "/" + noteId + key,
+				type: "DELETE",
+				async: true,
+				timeout: 300000,
+				success: function(data){
+					console.log('Note Deleted...');
+				}.bind(this),
+				error: function(xhr, status, err){
+					console.log(err);
+				}.bind(this)
+		});
+	}
 	}
 },{"../actions/AppActions":164,"./appUrl.js":175}],175:[function(require,module,exports){
-var url = "https://api.mlab.com/api/1/databases/styckypad/collections/notes?apiKey=FAag2nwnVMV86kaU3M5aJvq9J_OTOzc9";
-module.exports = url;
+var key = "?apiKey=FAag2nwnVMV86kaU3M5aJvq9J_OTOzc9";
+module.exports = key;
 
 },{}]},{},[171]);
