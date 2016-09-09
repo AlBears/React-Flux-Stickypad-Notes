@@ -19927,8 +19927,8 @@ var AppStore = require('../stores/AppStore');
 var Note = React.createClass({displayName: "Note",
 	render: function(){
 		return(
-        React.createElement("div", null, 
-          this.props.note.text
+        React.createElement("div", {className: "column"}, 
+          React.createElement("div", {className: "note"}, React.createElement("p", null, this.props.note.text))
         )
 		)
 	}
@@ -20047,9 +20047,6 @@ AppDispatcher.register(function(payload){
 
 			//Store Save
 			AppStore.setNotes(action.notes);
-
-			//API Save
-			AppAPI.addNote(action.note);
 
 			//Emit Change
 			AppStore.emit(CHANGE_EVENT);
