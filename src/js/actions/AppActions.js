@@ -7,6 +7,12 @@ var AppActions = {
 		actionType: AppConstants.ADD_NOTE,
 		note: note
 	});
+	},
+	receiveNotes: function(notes){
+		AppDispatcher.handleViewAction({
+			actionType: AppConstants.RECEIVE_NOTES,
+			notes: notes
+		});
 	}
 }
 
